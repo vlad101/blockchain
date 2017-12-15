@@ -22,11 +22,23 @@ Blockchain, a simple python list, is created. The first element of the list is t
 
 ### Django REST Framework
 
+## POST /get-token/
+
+Get token class defines the create behavior of the user token.
+
+**POST Example:** *curl -d '{"username": "<username>","password": "<password>"}' -X POST http://localhost:8000/get-token/ -H "Content-Type: application/json"*
+
+```
+{
+	"token": "1707e0e2f23bca6e1dfb90faab10bc88108c4197"
+}
+```
+
 ## GET /transactions/
 
-Create class defines the create behavior of the rest api.
+Get class defines the get behavior of the rest api. The user has to be the owner of the transaction to have that object's permission.
 
-**GET Example:** *curl http://localhost:8000/transactions/?format=json*
+**GET Example:** *curl -H "Authorization: Token 1707e0e2f23bca6e1dfb90faab10bc88108c4197" http://localhost:8000/transactions/*
 
 ```
 HTTP 200 OK
@@ -54,7 +66,9 @@ Vary: Accept
 ]
 ```
 
-**POST Example:** *curl -d '{"sender": "First5 Last5","recipient": "First6 Last6","amount": "11.99"}' -X POST http://localhost:8000/transactions/ -H "Content-Type: application/json"*
+Create class defines the create behavior of the rest api.
+
+**POST Example:** *curl -H "Authorization: Token 1707e0e2f23bca6e1dfb90faab10bc88108c4197" -d '{"sender": "First5 Last5","recipient": "First6 Last6","amount": "11.99"}' -X POST http://localhost:8000/transactions/ -H "Content-Type: application/json"*
 
 ```
 HTTP 201 Created
@@ -76,7 +90,7 @@ Vary: Accept
 
 Details class handles the HTTP GET, PUT and DELETE requests.
 
-**GET Details Example:** *curl http://localhost:8000/transactions/1?format=json*
+**GET Details Example:** *curl -H "Authorization: Token 1707e0e2f23bca6e1dfb90faab10bc88108c4197" http://localhost:8000/transactions/1/*
 
 ```
 HTTP 200 OK
@@ -94,7 +108,7 @@ Vary: Accept
 }
 ``` 
 
-**PUT Example:** *curl -d '{"sender": "First6 Last6","recipient": "First7 Last7","amount": "11.99"}' -X PUT http://localhost:8000/transactions/6/ -H "Content-Type: application/json"*
+**PUT Example:** *curl -H "Authorization: Token 1707e0e2f23bca6e1dfb90faab10bc88108c4197" -d '{"sender": "First6 Last6","recipient": "First7 Last7","amount": "11.99"}' -X PUT http://localhost:8000/transactions/14/ -H "Content-Type: application/json"*
 
 ```
 HTTP 200 OK
@@ -112,7 +126,7 @@ Vary: Accept
 }
 ```
 
-**DELETE Example:** *curl -X DELETE http://localhost:8000/transactions/7/*
+**DELETE Example:** *curl -H "Authorization: Token 1707e0e2f23bca6e1dfb90faab10bc88108c4197" -X DELETE http://localhost:8000/transactions/7/*
 
 ```
 HTTP 204 No Content
