@@ -8,22 +8,6 @@ import datetime as date
 import hashlib as hasher
 import inflect
 
-def create_genesis_block():
-	"""
-	First block, or genesis block, is a special block. 
-	it’s added manually or has unique logic allowing it to be added.
-	A function returns a genesis block. This block is of index 0, current timestamp, 
-	an arbitrary data value and an arbitrary value of the previous hash.
-	"""
-	last_block = Block.objects.create(
-								index=0,
-								timestamp=date.datetime.now(),
-								data='Genesis Block',
-								previous_hash='0'
-							)
-	last_block.save()
-	return last_block
-
 class CreateTransactionView(generics.ListCreateAPIView):
 	"""This class defines the create behavior of the rest api."""
 	queryset = Transaction.objects.all()
@@ -88,6 +72,7 @@ class CreateBlockView(generics.ListCreateAPIView):
 
 		# get the last_block or create it if it does not exist
 		last_block = {}
+		proof_of_work = 0
 		try:
 		    last_block = Block.objects.latest('id')
 		except Block.DoesNotExist:
@@ -95,12 +80,18 @@ class CreateBlockView(generics.ListCreateAPIView):
 		# save the next block
 		validated_data = serializer.validated_data
 		for key, value in validated_data.items():
+			if(key == 'proof_of_work'):
+				print('!!!')
+				print(proof_of_work)
+				print('!!!')
+				proof_of_work = value
 			if(key == 'data'):
 				serializer.save(
-					index=last_block.index + 1,
-					timestamp=date.datetime.now(),
-					data='{}'.format(str(value)),
-					previous_hash=last_block.current_hash
+							index=last_block.index + 1,
+							timestamp=date.datetime.now(),
+							data='{}'.format(str(value)),
+							previous_hash=last_block.current_hash,
+							proof_of_work=proof_of_work 
 		   		)
 
 class AddBlockView(generics.ListCreateAPIView):
@@ -124,14 +115,55 @@ class AddBlockView(generics.ListCreateAPIView):
 		    # increment index
 			this_index = last_block.index + 1
 			block = Block.objects.create(
-							index=this_index,
-							timestamp=date.datetime.now(),
-							data='Hey! I\'m block {}'.format(str(this_index)),
-							previous_hash=last_block.current_hash
+									index=this_index,
+									timestamp=date.datetime.now(),
+									data='Hey! I\'m block {}'.format(str(this_index)),
+									previous_hash=last_block.current_hash
 			    			)
 			block.save()
 			print("Block #{} has been added to the blockchain!\n{}".format(this_index, block))
 		dict = {'detail' : '{} {} added successfully'.format(num_of_blocks_to_add, p.plural("block", num_of_blocks_to_add))}
+		return Response(dict)
+
+class MineBlockView(generics.ListCreateAPIView):
+	"""This class defines the create block behavior of the rest api."""
+	miner_address = "q3nf394hjg-random-miner-address-34nf3i4nflkn3oi"
+	serializer_class = BlockSerializer
+	permission_classes = (permissions.IsAuthenticated, )
+
+	def list(self, request):
+		# Get the last_block or create it if it does not exist
+		last_block = {}
+		try:
+		    last_block = Block.objects.latest('id')
+		except Block.DoesNotExist:
+		    last_block = create_genesis_block()
+		last_proof = last_block.data['proof-of-work']
+		# Find the proof of work for the current block being mined.
+		# Note: The program will hang until a new proof of work is found.
+		proof = proof_of_work(last_proof)
+		# Once a valid proof of work is found, mine a block so the miner 
+		# gets rewarded by adding a transaction.
+		this_nodes_transactions.append(
+			{ 
+				'from': 'network',
+				'to': miner_address,
+				'amount': 1
+			}
+		)
+		# Gather the data needed to create the new block.
+		new_block_index = last_block.index + 1
+		new_block_timestamp = this_timestamp = date.datetime.now()
+		last_block_hash = last_block.current_hash
+		# Create the new Block
+		block = Block.objects.create(
+									index=new_block_index,
+									timestamp=new_block_timestamp,
+									data=new_block_data,
+									previous_hash=last_block.current_hash
+				    			)
+		block.save()
+		dict = {'detail' : 'Blocked mined successfully'}
 		return Response(dict)
 
 class DetailsBlockView(generics.RetrieveUpdateDestroyAPIView):
@@ -149,3 +181,36 @@ class UserDetailsView(generics.RetrieveAPIView):
     """View to retrieve a user instance."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+def create_genesis_block():
+	"""
+	First block, or genesis block, is a special block. 
+	it’s added manually or has unique logic allowing it to be added.
+	A function returns a genesis block. This block is of index 0, current timestamp, 
+	an arbitrary data value and an arbitrary value of the previous hash.
+	"""
+	last_block = Block.objects.create(
+								index=0,
+								timestamp=date.datetime.now(),
+								data='Genesis Block',
+								previous_hash='0'
+							)
+	last_block.save()
+	return last_block
+
+def proof_of_work(last_proof):
+	"""
+	A Proof-of-work algorithm is an algorithm that generates an item that is difficult 
+	to create but easy to verify. The item is called the proof because it is a proof that 
+	a computer performed a certain amount of work. To create a new block, a miner's computer 
+	will have to increment a number. When that number is divisible 9 and the proof number of the 
+	last block, a new block will be mined and the miner will be given a new coin.
+	"""
+	# Create a variable that we will use to find the next proof of work
+	incrementor = last_proof + 1
+	# Keep incrementing the incrementor until it's equal to a number divisible by 9 
+	# and the proof of work of the previous block in the chain.
+	while not (incrementor % 9 == 0 and incrementor % last_proof == 0):
+		incrementor += 1
+	# Once that number is found, return it as a proof of the work
+	return incrementor

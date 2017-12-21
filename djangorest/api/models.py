@@ -7,22 +7,6 @@ from rest_framework.authtoken.models import Token
 import datetime as date
 import hashlib as hasher
 
-class Transaction(models.Model):
-	"""This class represents the transaction model."""
-	sender = models.CharField(max_length=255, blank=False, unique=False)
-	recipient = models.CharField(max_length=255, blank=False, unique=False)
-	amount = models.DecimalField(max_digits=8, decimal_places=2)
-	owner = models.ForeignKey('auth.User', related_name='transactions', on_delete=models.CASCADE)
-	date_created = models.DateTimeField(auto_now_add=True)
-	date_modified = models.DateTimeField(auto_now=True)
-
-	def __str__(self):
-		"""Return a human readable representation of the transaction model instance."""
-		return 'Transaction{{sender={}, recipient={}, amount={}, owner={}}}'.format(self.sender, 
-																					self.recipient,
-																					self.amount,
-																					self.owner)
-
 class Block(models.Model):
 	"""
 	This class represents the block model.
@@ -35,6 +19,7 @@ class Block(models.Model):
 	timestamp = models.DateTimeField(auto_now_add=True)
 	data = models.CharField(max_length=255, blank=False, unique=False)
 	previous_hash = models.CharField(max_length=255, blank=False, unique=False)
+	proof_of_work = models.IntegerField(blank=True, unique=False, default=0)
 	current_hash = models.CharField(max_length=255, blank=False, unique=False)
 	date_modified = models.DateTimeField(auto_now=True)
 
@@ -58,6 +43,25 @@ class Block(models.Model):
 																							str(self.data), 
 																							str(self.previous_hash), 
 																							str(self.current_hash))
+
+class Transaction(models.Model):
+	"""This class represents the transaction model."""
+	block = models.ForeignKey(Block, blank=True, null=True, on_delete=models.SET_NULL)
+	sender = models.CharField(max_length=255, blank=False, unique=False)
+	recipient = models.CharField(max_length=255, blank=False, unique=False)
+	amount = models.DecimalField(max_digits=8, decimal_places=2)
+	owner = models.ForeignKey('auth.User', related_name='transactions', on_delete=models.CASCADE)
+	date_created = models.DateTimeField(auto_now_add=True)
+	date_modified = models.DateTimeField(auto_now=True)
+
+	def __str__(self):
+		"""Return a human readable representation of the transaction model instance."""
+		return 'Transaction{{sender={}, recipient={}, amount={}, owner={}, block={}}}'.format(self.sender, 
+																					self.recipient,
+																					self.amount,
+																					self.owner,
+																					self.block)
+
 
 # This receiver handles token creation immediately a new user is created.
 @receiver(post_save, sender=User)
