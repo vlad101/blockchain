@@ -7,6 +7,7 @@ from .models import Block, Transaction
 import datetime as date
 import hashlib as hasher
 import inflect
+import requests
 
 class CreateTransactionView(generics.ListCreateAPIView):
 	"""This class defines the create behavior of the rest api."""
@@ -81,9 +82,6 @@ class CreateBlockView(generics.ListCreateAPIView):
 		validated_data = serializer.validated_data
 		for key, value in validated_data.items():
 			if(key == 'proof_of_work'):
-				print('!!!')
-				print(proof_of_work)
-				print('!!!')
 				proof_of_work = value
 			if(key == 'data'):
 				serializer.save(
@@ -127,7 +125,6 @@ class AddBlockView(generics.ListCreateAPIView):
 
 class MineBlockView(generics.ListCreateAPIView):
 	"""This class defines the create block behavior of the rest api."""
-	miner_address = "q3nf394hjg-random-miner-address-34nf3i4nflkn3oi"
 	serializer_class = BlockSerializer
 	permission_classes = (permissions.IsAuthenticated, )
 
@@ -138,19 +135,10 @@ class MineBlockView(generics.ListCreateAPIView):
 		    last_block = Block.objects.latest('id')
 		except Block.DoesNotExist:
 		    last_block = create_genesis_block()
-		last_proof = last_block.data['proof-of-work']
+		last_proof = last_block.proof_of_work
 		# Find the proof of work for the current block being mined.
 		# Note: The program will hang until a new proof of work is found.
 		proof = proof_of_work(last_proof)
-		# Once a valid proof of work is found, mine a block so the miner 
-		# gets rewarded by adding a transaction.
-		this_nodes_transactions.append(
-			{ 
-				'from': 'network',
-				'to': miner_address,
-				'amount': 1
-			}
-		)
 		# Gather the data needed to create the new block.
 		new_block_index = last_block.index + 1
 		new_block_timestamp = this_timestamp = date.datetime.now()
@@ -159,12 +147,128 @@ class MineBlockView(generics.ListCreateAPIView):
 		block = Block.objects.create(
 									index=new_block_index,
 									timestamp=new_block_timestamp,
-									data=new_block_data,
-									previous_hash=last_block.current_hash
+									data='Hey! I\'m block {}'.format(str(new_block_index)),
+									previous_hash=last_block.current_hash,
+									proof_of_work=proof
 				    			)
 		block.save()
+
+		# Once a valid proof of work is found, mine a block so the miner 
+		# gets rewarded by adding a transaction.
+		miner_address = 'q3nf394hjg-random-miner-address-34nf3i4nflkn3oi'
+		block.transaction_set.create(
+									sender='network',
+									recipient=miner_address,
+									amount=1,
+									owner=request.user
+								)
 		dict = {'detail' : 'Blocked mined successfully'}
 		return Response(dict)
+
+class ControlBlockView(generics.ListCreateAPIView):
+	"""This class defines the create block behavior of the rest api."""
+	serializer_class = BlockSerializer
+	permission_classes = (permissions.IsAuthenticated, )
+
+	def list(self, request):
+		"""
+		If blockchains are decentralized, the same chain must be on every node. Each node have to 
+		broadcast its version of the chain to the others and allow them to receive the chains of other nodes.
+		Each node has to verify the other nodes’ chains so that the every node in the network can come to a 
+		consensus of what the resulting blockchain will look like. This is called a consensus algorithm.
+		Consensus algorithm: if a node’s chain is different from another’s (i.e. there is a conflict), 
+		then the longest chain in the network stays and all shorter chains will be deleted. If there is no conflict 
+		between the chains in our network, then we carry on.
+		"""
+		self.consensus()
+		dict = {'detail' : 'Blockchain controlled successfully'}
+		return Response(dict)
+
+	def consensus(self):
+		# Get the blocks from other nodes
+		other_chains = self.find_new_chains()
+		# if the current chain is not the longest,
+		# store the longest chain
+
+		for chain in other_chains:
+			print('!!!!!!!!!!!!!')
+			print(len(chain))
+			print('!!!!!!!!!!!!!')
+			for obj in chain:
+				# block data
+				for k,v in obj.items():
+					# transaction data
+					print(k, v)
+					if k == 'transaction':
+						for tr in v:
+							for k1,v1 in tr.items():
+								print(k1, v1)
+					else:
+						print(k, v)
+
+		#longest_chain = blockchain
+		#for chain in other_chains:
+		#	if len(longest_chain) < len(chain):
+		#		longest_chain = chain
+		# If the longest chain wasn't ours,
+		# then we set the current chain to the longest
+		#blockchain = longest_chain
+
+	def find_new_chains(self):
+		other_chains = []
+		headers = {'Authorization': 'Token 1707e0e2f23bca6e1dfb90faab10bc88108c4197'}
+		peer_nodes = ['http://localhost:8000', ]
+		for node_url in peer_nodes:
+			# create new chain
+			curr_chain = []
+			# Get the chains using a GET request
+			r = requests.get(node_url + '/blocks/', headers=headers)
+			if r.status_code == 200:
+				for block in r.json():
+					if ('id' in block and 'current_hash' in block and 
+						'index' in block and 'proof_of_work' in block and 
+						'date_modified' in block and 'timestamp' in block and 
+						'data' in block and 'previous_hash' in block and 
+						'transactions' in block):
+						# get translation data
+						transactions = []
+						for transaction_id in block.get('transactions'):
+							# Get the transaction using a GET request
+							r = requests.get(node_url + '/transactions/' + str(transaction_id), headers=headers)
+							if r.status_code == 200:
+								for transaction in r.json():
+									# get transaction data
+									if('id' in transaction and 'sender' in transaction and 
+										'recipient' in transaction and 'amount' in transaction and 
+										'owner' in transaction and 'block' in transaction and 
+										'date_modified' in transaction and 'date_created' in transaction):
+										new_transaction = {
+											'id': block.get('id'),
+											'sender': block.get('sender'),
+											'recipient': block.get('recipient'),
+											'amount': block.get('amount'), 
+											'owner': block.get('owner'),
+											'block': block.get('block'),
+											'date_modified': block.get('date_modified'), 
+											'date_created': block.get('date_created')
+										}
+										transactions.append(new_transaction)
+						# get block data
+						new_block = {
+								'id': block.get('id'),
+								'current_hash': block.get('current_hash'),
+								'index': block.get('index'),
+								'proof_of_work': block.get('proof_of_work'),
+								'date_modified': block.get('date_modified'),
+								'timestamp': block.get('timestamp'),
+								'data': block.get('data'),
+								'previous_hash': block.get('previous_hash'),
+								'transaction': transactions
+						}
+						curr_chain.append(new_block)
+			# Add it to the list
+			other_chains.append(curr_chain)
+		return other_chains
 
 class DetailsBlockView(generics.RetrieveUpdateDestroyAPIView):
 	"""This class handles the HTTP GET, PUT and DELETE requests."""

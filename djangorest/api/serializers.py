@@ -4,11 +4,12 @@ from .models import Block, Transaction
 
 class BlockSerializer(serializers.ModelSerializer):
 	"""Serializer to map the block model instance into JSON format."""
+	transactions = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
 	class Meta:
 		"""Meta class to map serializer's fields with the block model fields."""
 		model = Block
-		fields = ('id', 'index', 'timestamp', 'data', 'previous_hash', 'current_hash', 'proof_of_work', 'date_modified', )
+		fields = ('id', 'index', 'timestamp', 'data', 'previous_hash', 'current_hash', 'proof_of_work', 'transactions', 'date_modified', )
 		read_only_fields = ('index', 'date_modified', 'previous_hash', 'current_hash',)
 
 class TransactionSerializer(serializers.ModelSerializer):

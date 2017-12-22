@@ -19,7 +19,7 @@ class Block(models.Model):
 	timestamp = models.DateTimeField(auto_now_add=True)
 	data = models.CharField(max_length=255, blank=False, unique=False)
 	previous_hash = models.CharField(max_length=255, blank=False, unique=False)
-	proof_of_work = models.IntegerField(blank=True, unique=False, default=0)
+	proof_of_work = models.IntegerField(blank=True, unique=False, default=1)
 	current_hash = models.CharField(max_length=255, blank=False, unique=False)
 	date_modified = models.DateTimeField(auto_now=True)
 
@@ -46,7 +46,7 @@ class Block(models.Model):
 
 class Transaction(models.Model):
 	"""This class represents the transaction model."""
-	block = models.ForeignKey(Block, blank=True, null=True, on_delete=models.SET_NULL)
+	block = models.ForeignKey(Block, related_name='transactions', blank=True, null=True, on_delete=models.SET_NULL)
 	sender = models.CharField(max_length=255, blank=False, unique=False)
 	recipient = models.CharField(max_length=255, blank=False, unique=False)
 	amount = models.DecimalField(max_digits=8, decimal_places=2)

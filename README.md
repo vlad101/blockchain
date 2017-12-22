@@ -55,7 +55,8 @@ Vary: Accept
         "previous_hash":"0",
         "current_hash":"f75700d932d78fbe6ddd6b65dd7f7f4c33c918c42aef8b4ca75eb5e8f203324b",
         "date_modified":"2017-12-19T12:24:48.172470-05:00",
-        "proof_of_work":0
+        "proof_of_work":0,
+        'transactions': [52]
     },{
         "id":120,
         "index":1,
@@ -64,7 +65,8 @@ Vary: Accept
         "previous_hash":"f75700d932d78fbe6ddd6b65dd7f7f4c33c918c42aef8b4ca75eb5e8f203324b",
         "current_hash":"b1da780197d1039d925cbb551993d3b771505598b78b3f113f655024050946d0",
         "date_modified":"2017-12-19T12:24:48.230623-05:00",
-        "proof_of_work":0
+        "proof_of_work":0,
+        "transactions": [53, 54, 55]
     }
 ]
 ```
@@ -87,7 +89,8 @@ Vary: Accept
     "previous_hash":"5ff621016cb6f10f4b614b45907c49d3310f20460e21e66dd5adb79d75adc41e",
     "current_hash":"77e84db2bd9d109ae3577f8c6f3aeb6898bdb7423ff2d567d6d99b4f76f36027",
     "date_modified":"2017-12-19T15:59:48.660301-05:00",
-    "proof_of_work":0
+    "proof_of_work":0,
+    "transactions": []
 }
 ```
 
@@ -111,7 +114,8 @@ Vary: Accept
     "previous_hash":"93676761b7487714920aba0781628af8f0e18ae1932050c8d1cf911d3d7be09a",
     "current_hash":"5ff621016cb6f10f4b614b45907c49d3310f20460e21e66dd5adb79d75adc41e",
     "date_modified":"2017-12-19T15:55:21.584692-05:00",
-    "proof_of_work":0
+    "proof_of_work":0,
+    "transactions": []
 }
 ``` 
 
@@ -124,13 +128,15 @@ Content-Type: application/json
 Vary: Accept
 
 {
-        "id":142,
-        "index":1,
-        "timestamp":"2017-12-19T15:55:21.584692-05:00",
-        "data":"Updated Block",
-        "previous_hash":"93676761b7487714920aba0781628af8f0e18ae1932050c8d1cf911d3d7be09a",
-        "current_hash":"34f1a46cb39c278ab8c4ba06e190eb1c72862c06c647cf14599e5d6c35ee57f0",
-        "date_modified":"2017-12-19T16:05:36.593024-05:00"
+    "id":142,
+    "index":1,
+    "timestamp":"2017-12-19T15:55:21.584692-05:00",
+    "data":"Updated Block",
+    "previous_hash":"93676761b7487714920aba0781628af8f0e18ae1932050c8d1cf911d3d7be09a",
+    "current_hash":"34f1a46cb39c278ab8c4ba06e190eb1c72862c06c647cf14599e5d6c35ee57f0",
+    "date_modified":"2017-12-19T16:05:36.593024-05:00",
+    "proof_of_work":0,
+    "transactions": []
 }
 ```
 

@@ -1,7 +1,7 @@
 from django.conf.urls import url, include
 from rest_framework.urlpatterns import format_suffix_patterns
 from rest_framework.authtoken.views import obtain_auth_token
-from .views import CreateTransactionView, DetailsTransactionView, CreateBlockView, DetailsBlockView, AddBlockView, MineBlockView, UserView, UserDetailsView
+from .views import CreateTransactionView, DetailsTransactionView, CreateBlockView, DetailsBlockView, AddBlockView, MineBlockView, ControlBlockView, UserView, UserDetailsView
 
 
 urlpatterns = {
@@ -12,6 +12,7 @@ urlpatterns = {
 	url(r'^blocks/(?P<pk>[0-9]+)/$', DetailsBlockView.as_view(), name='details'),
 	url(r'^blocks/add/(?P<num_of_blocks_to_add>[0-9]+)/$', AddBlockView.as_view(), name='block_add'),
 	url(r'^blocks/mine/$', MineBlockView.as_view(), name='block_mine'),
+	url(r'^blocks/control/$', ControlBlockView.as_view(), name='block_control'),
     url(r'^users/$', UserView.as_view(), name="users"),
     url(r'^users/(?P<pk>[0-9]+)/$', UserDetailsView.as_view(), name="user_details"),
 	url(r'^get-token/', obtain_auth_token),
