@@ -189,30 +189,35 @@ class ControlBlockView(generics.ListCreateAPIView):
 		other_chains = self.find_new_chains()
 		# if the current chain is not the longest,
 		# store the longest chain
-
+		longest_chain = Block.objects.all() 
+		
 		for chain in other_chains:
-			print('!!!!!!!!!!!!!')
-			print(len(chain))
-			print('!!!!!!!!!!!!!')
-			for obj in chain:
-				# block data
-				for k,v in obj.items():
-					# transaction data
-					print(k, v)
-					if k == 'transaction':
-						for tr in v:
-							for k1,v1 in tr.items():
-								print(k1, v1)
-					else:
-						print(k, v)
+			print('Current chain length: {}'.format(longest_chain.count()))
+			print('New chain length: {}'.format(len(chain)))
+			if longest_chain.count() < len(chain):
+				print('I am here!')
+				longest_chain = chain
+		
+		
+		# TODO
 
-		#longest_chain = blockchain
-		#for chain in other_chains:
-		#	if len(longest_chain) < len(chain):
-		#		longest_chain = chain
-		# If the longest chain wasn't ours,
-		# then we set the current chain to the longest
+		# If the longest chain is not the current chain,
+		# set the current chain to the longest
 		#blockchain = longest_chain
+		# remove current chain data and replace with the new chain data
+
+		# process data
+		#for obj in chain:
+		#	# block data
+		#	for k,v in obj.items():
+		#		# transaction data
+		#		print(k, v)
+		#		if k == 'transaction':
+		#			for tr in v:
+		#				for k1,v1 in tr.items():
+		#					print(k1, v1)
+		#		else:
+		#			print(k, v)	
 
 	def find_new_chains(self):
 		other_chains = []
